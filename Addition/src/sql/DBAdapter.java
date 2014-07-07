@@ -115,6 +115,7 @@ public class DBAdapter {
         
         public ArrayList<String> getFahrer(){
             SQLCommand = "select * from Fahrer";
+            fahrer = null;
             fahrer = queryFahrer();
             return fahrer;
         }

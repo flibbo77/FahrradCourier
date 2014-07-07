@@ -543,7 +543,7 @@ public class AdditionUI extends javax.swing.JFrame {
         fahrerListIndexOfSelected = -1;
         fahrerListe.clearSelection();
         editFahrerFNameText.setText("");
-       editFahrerLNameText.setText("");
+        editFahrerLNameText.setText("");
         
     }//GEN-LAST:event_submitFahrerButActionPerformed
 
@@ -617,12 +617,13 @@ public class AdditionUI extends javax.swing.JFrame {
     }
     
     private void updateFahrerComboBox(){
-        chooseFahrerBox.removeAll();
+        chooseFahrerBox.removeAllItems();
         ArrayList<String> list = dbAdapter.getFahrer();
-                
+        System.out.println("Liste: ");       
         for(int i = 0; i <list.size(); i++){
             String str = list.get(i);
             chooseFahrerBox.addItem(str);
+            System.out.println(list.get(i));
         }
     }
     
