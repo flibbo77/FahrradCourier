@@ -13,11 +13,11 @@ import javax.swing.*;
  *
  * @author flibbo
  */
-public class FahrerListManager extends javax.swing.JFrame {
+public class ListManager extends javax.swing.JFrame {
     private JList myList;
     private DefaultListModel listModel;
     
-    public FahrerListManager(JList list, DefaultListModel model){
+    public ListManager(JList list, DefaultListModel model){
         myList = list;
         listModel = model;
     }
@@ -34,7 +34,7 @@ public class FahrerListManager extends javax.swing.JFrame {
         listModel.set(index, str);
     }
     
-    public void updateFahrerList(ArrayList<String> list){
+    public void updateList(ArrayList<String> list){
         int i = 0;
         listModel.clear();
         while(i < list.size()){

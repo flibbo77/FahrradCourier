@@ -6,7 +6,7 @@
 
 package my.Addition;
 
-import ListManagement.FahrerListManager;
+import ListManagement.ListManager;
 import sql.DBAdapter;
 import javax.swing.*;
 import java.util.ArrayList;
@@ -35,7 +35,8 @@ public class AdditionUI extends javax.swing.JFrame {
     
     private DBAdapter dbAdapter;
     
-    private FahrerListManager listManager;
+    private ListManager fahrerListManager;
+    private ListManager ordersListManager;
             
     public AdditionUI() {
         initVariables();
@@ -609,10 +610,11 @@ public class AdditionUI extends javax.swing.JFrame {
     }
 
     private void updateOrderViews() {
+        ordersListManager.updateList(dbAdapter.getOrders());
     }
     
     private void updateFahrerViews() {
-        listManager.updateFahrerList(dbAdapter.getFahrer());
+        fahrerListManager.updateList(dbAdapter.getFahrer());
         updateFahrerComboBox();
     }
     
@@ -628,11 +630,16 @@ public class AdditionUI extends javax.swing.JFrame {
     }
     
      private void initLists() {
-         DefaultListModel listModel = new DefaultListModel();
-         fahrerListe.setModel(listModel);
-         listManager = new FahrerListManager(fahrerListe, listModel);
-         listManager.updateFahrerList(dbAdapter.getFahrer());
+         DefaultListModel fahrerListModel = new DefaultListModel();
+         fahrerListe.setModel(fahrerListModel);
+         fahrerListManager = new ListManager(fahrerListe, fahrerListModel);
+         fahrerListManager.updateList(dbAdapter.getFahrer());
          updateFahrerComboBox();
+         
+         DefaultListModel ordersListModel = new DefaultListModel();
+         orderListe.setModel(ordersListModel);
+         ordersListManager = new ListManager(orderListe, ordersListModel);
+         //ordersListManager.updateList(dbAdapter.getOrders());
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
