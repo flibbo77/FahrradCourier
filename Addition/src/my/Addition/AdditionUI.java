@@ -650,13 +650,13 @@ public class AdditionUI extends javax.swing.JFrame {
     }
     
     private void updateFahrerViews() {
-        fahrerListManager.updateList(dbAdapter.getFahrer());
+        fahrerListManager.updateList(dbAdapter.getAllFahrerAsStringList());
         updateFahrerComboBox();
     }
     
     private void updateFahrerComboBox(){
         chooseFahrerBox.removeAllItems();
-        ArrayList<String> list = dbAdapter.getFahrer();
+        ArrayList<String> list = dbAdapter.getAllFahrerAsStringList();
         System.out.println("Liste: ");       
         for(int i = 0; i <list.size(); i++){
             String str = list.get(i);
@@ -669,7 +669,7 @@ public class AdditionUI extends javax.swing.JFrame {
          DefaultListModel fahrerListModel = new DefaultListModel();
          fahrerListe.setModel(fahrerListModel);
          fahrerListManager = new ListManager(fahrerListe, fahrerListModel);
-         fahrerListManager.updateList(dbAdapter.getFahrer());
+         fahrerListManager.updateList(dbAdapter.getAllFahrerAsStringList());
          updateFahrerComboBox();
          
          DefaultListModel ordersListModel = new DefaultListModel();

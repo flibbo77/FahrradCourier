@@ -9,6 +9,9 @@ import java.util.Random;
 
 public class DBAdapter {
 
+    private Statement SQLStatement;
+    private Connection dbConnection;
+
     private int xSize, ySize;
     private int numOfOrders;
 
@@ -41,14 +44,22 @@ public class DBAdapter {
         actDate = dateFormat.format(date);
     }
 
-    private void performInsertOperation() {
-
+    private void makeConnection() {
         try {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
             String url = "jdbc:mysql://132.199.139.24:3306/mmdb14_aponbhuiya?user=a.bhuiya&password=mmdb";
-            Connection dbConnection = DriverManager.getConnection(url);
-            Statement SQLStatement = dbConnection.createStatement();
+            dbConnection = DriverManager.getConnection(url);
+            SQLStatement = dbConnection.createStatement();
 
+        } catch (Exception e) {
+            System.out.println("hello_1");
+            System.out.println(e);
+        }
+    }
+
+    private void performInsertOperation() {
+        try {
+            makeConnection();
             SQLStatement.executeUpdate(SQLCommand);
             dbConnection.close();
         } catch (Exception e) {
@@ -58,23 +69,15 @@ public class DBAdapter {
     }
 
     private String getSingleString(String col) {
-        String result = "";
-
+        String result = "Fehler";
         try {
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-            String url = "jdbc:mysql://132.199.139.24:3306/mmdb14_aponbhuiya?user=a.bhuiya&password=mmdb";
-            Connection dbConnection = DriverManager.getConnection(url);
-            Statement SQLStatement = dbConnection.createStatement();
-
+            makeConnection();
             SQLStatement.executeQuery(SQLCommand);
-
             ResultSet Results = SQLStatement.executeQuery(SQLCommand);
-
             while (Results.next()) {
                 result = Results.getString(col);
                 System.out.println(result);
             }
-
             dbConnection.close();
         } catch (Exception e) {
             System.out.println("hello_2");
@@ -83,30 +86,22 @@ public class DBAdapter {
         return result;
     }
 
-    private ArrayList<String> queryDB(ArrayList<String> result, String[] cols) {
+    private ArrayList<String> queryDBPutColsInStringList(String[] cols) {
+        ArrayList<String> result = new ArrayList<String>();
         try {
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-            String url = "jdbc:mysql://132.199.139.24:3306/mmdb14_aponbhuiya?user=a.bhuiya&password=mmdb";
-            Connection dbConnection = DriverManager.getConnection(url);
-            Statement SQLStatement = dbConnection.createStatement();
-
+            makeConnection();
             ResultSet Results = SQLStatement.executeQuery(SQLCommand);
-
             while (Results.next()) {
-                System.out.println("hier");
-                //result.add(Results.getString(cols[0]) + " " + Results.getString(cols[1]));
                 String str = "";
                 for (int i = 0; i < cols.length; i++) {
                     str += Results.getString(cols[i]) + "   ";
                 }
                 result.add(str);
             }
-
             dbConnection.close();
         } catch (Exception e) {
             System.out.println("hello_3");
             System.out.println(e);
-            System.out.println(SQLCommand);
         }
         return result;
     }
@@ -116,17 +111,11 @@ public class DBAdapter {
         int result = -1;
 
         try {
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-            String url = "jdbc:mysql://132.199.139.24:3306/mmdb14_aponbhuiya?user=a.bhuiya&password=mmdb";
-            Connection dbConnection = DriverManager.getConnection(url);
-            Statement SQLStatement = dbConnection.createStatement();
-
+            makeConnection();
             ResultSet Results = SQLStatement.executeQuery(SQLCommand);
-
             while (Results.next()) {
                 result = Results.getInt(col);
             }
-
             dbConnection.close();
         } catch (Exception e) {
             System.out.println("hello_4");
@@ -142,17 +131,11 @@ public class DBAdapter {
                 + " and " + table2 + ".ID =" + table3 + ".ID "
                 + " and " + table1 + "." + table1Col + " = " + (index + 1);
         try {
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-            String url = "jdbc:mysql://132.199.139.24:3306/mmdb14_aponbhuiya?user=a.bhuiya&password=mmdb";
-            Connection dbConnection = DriverManager.getConnection(url);
-            Statement SQLStatement = dbConnection.createStatement();
-
+            makeConnection();
             ResultSet Results = SQLStatement.executeQuery(SQLCommand);
-
             while (Results.next()) {
                 val = Results.getInt(col);
             }
-
             dbConnection.close();
         } catch (Exception e) {
             System.out.println("hello_4");
@@ -161,12 +144,13 @@ public class DBAdapter {
         return val;
     }
 
-    public ArrayList<String> getFahrer() {
+    public ArrayList<String> getAllFahrerAsStringList() {
         SQLCommand = "select * from Fahrer";
-        ArrayList<String> temp = new ArrayList<String>();
+
+        // ArrayList<String> temp = new ArrayList<String>();
         String[] cols = {"PNR", "VNAME", "NNAME"};
-        fahrer = queryDB(temp, cols);
-        return fahrer;
+        //fahrer = queryDBPutColsInStringList(temp, cols);
+        return queryDBPutColsInStringList(cols);
     }
 
     public ArrayList<String> getOrders() {
@@ -179,18 +163,15 @@ public class DBAdapter {
                 + "where Auftrag.ANR = StartAdr.ANR "
                 + "and Auftrag.ANR = ZielAdr.ANR";
 
-        ArrayList<String> temp = new ArrayList<String>();
         String[] cols = {"ANR", "PNR", "DATE", "TIME", "StartX", "StartY", "ZielX", "ZielY", "STATUS"};
-        orders = queryDB(temp, cols);
-        numOfOrders = orders.size();
-        System.out.println("num of orders: " + numOfOrders);
-        return orders;
+        
+        return queryDBPutColsInStringList(cols);
     }
 
     private String getOrderForShortestWay(int aNr) {
         aNr += 1;
         String order = "";
-        ArrayList<String> temp = new ArrayList<String>();
+
         SQLCommand = "select Auftrag.ANR, PNR, DATE, TIME, STATUS, StartX, StartY, ZielX,  ZielY "
                 + "from Auftrag, "
                 + "(select ANR, X as StartX, Y as StartY from Adresse, Abholadresse"
@@ -199,11 +180,11 @@ public class DBAdapter {
                 + "where a2.ID = Ziel.ID) as ZielAdr "
                 + "where Auftrag.ANR = StartAdr.ANR "
                 + "and Auftrag.ANR = ZielAdr.ANR "
-                + "and Auftrag.STATUS = \"nicht in Bearbeitung\" "
+                // + "and Auftrag.STATUS = \"nicht in Bearbeitung\" "
                 + "and Auftrag.ANR = " + aNr;
 
         String[] cols = {"ANR", "DATE", "TIME", "StartX", "StartY", "ZielX", "ZielY"};
-        orders = queryDB(temp, cols);
+        orders = queryDBPutColsInStringList(cols);
         numOfOrders = orders.size();
         System.out.println("num of orders: " + numOfOrders);
         if (orders.size() > 0) {
@@ -286,7 +267,7 @@ public class DBAdapter {
     }
 
     public String findClosestOrder(int fahrerComboIndexOfSelected) {
-        String closestOrder = "Leberkässemmeln holen";
+        String closestOrder = "";
 
         int fahrerX = getIntFrom3Relations("Fahrer", "PNR", "Standort", "Adresse", "X", fahrerComboIndexOfSelected);
         int fahrerY = getIntFrom3Relations("Fahrer", "PNR", "Standort", "Adresse", "Y", fahrerComboIndexOfSelected);
@@ -305,7 +286,7 @@ public class DBAdapter {
                 indexOfLowest = i;
             }
             System.out.println("x: " + x + " , y: " + y + " , dist: " + dist);
-          
+
         }
         System.out.println("lowest dist: " + lowestDist + " , index: " + indexOfLowest);
         closestOrder = getOrderForShortestWay(indexOfLowest);
