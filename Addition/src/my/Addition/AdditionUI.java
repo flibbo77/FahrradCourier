@@ -465,8 +465,8 @@ public class AdditionUI extends javax.swing.JFrame {
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addComponent(jLabel10)
                         .addGap(18, 18, 18)
-                        .addComponent(chooseFahrerBox, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(74, Short.MAX_VALUE))
+                        .addComponent(chooseFahrerBox, javax.swing.GroupLayout.PREFERRED_SIZE, 323, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(28, Short.MAX_VALUE))
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -590,6 +590,7 @@ public class AdditionUI extends javax.swing.JFrame {
 
     private void chooseFahrerBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chooseFahrerBoxActionPerformed
         fahrerComboIndexOfSelected = chooseFahrerBox.getSelectedIndex();
+        actualOrderLabel.setText(dbAdapter.getActualOrderForDriver(fahrerComboIndexOfSelected));
         System.out.println(fahrerComboIndexOfSelected);
     }//GEN-LAST:event_chooseFahrerBoxActionPerformed
 

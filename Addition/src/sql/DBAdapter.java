@@ -1,11 +1,13 @@
 package sql;
 
 import java.sql.*;
-import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
+import util.Fahrer;
+import util.Order;
 
 public class DBAdapter {
 
@@ -17,6 +19,8 @@ public class DBAdapter {
 
     private ArrayList<String> orders;
     private ArrayList<String> fahrer;
+    private ArrayList<Fahrer> fahrerList;
+    private ArrayList<Order> ordersList;
 
     private Random rand;
 
@@ -36,6 +40,8 @@ public class DBAdapter {
         rand = new Random();
         timeFormat = new SimpleDateFormat("HH:mm:ss");
         dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        updateFahrerList();
+        updateOrdersList();
     }
 
     private void setTimeDate() {
@@ -68,44 +74,23 @@ public class DBAdapter {
         }
     }
 
-    private String getSingleString(String col) {
-        String result = "Fehler";
-        try {
-            makeConnection();
-            SQLStatement.executeQuery(SQLCommand);
-            ResultSet Results = SQLStatement.executeQuery(SQLCommand);
-            while (Results.next()) {
-                result = Results.getString(col);
-                System.out.println(result);
-            }
-            dbConnection.close();
-        } catch (Exception e) {
-            System.out.println("hello_2");
-            System.out.println(e);
-        }
-        return result;
-    }
-
-    private ArrayList<String> queryDBPutColsInStringList(String[] cols) {
-        ArrayList<String> result = new ArrayList<String>();
-        try {
-            makeConnection();
-            ResultSet Results = SQLStatement.executeQuery(SQLCommand);
-            while (Results.next()) {
-                String str = "";
-                for (int i = 0; i < cols.length; i++) {
-                    str += Results.getString(cols[i]) + "   ";
-                }
-                result.add(str);
-            }
-            dbConnection.close();
-        } catch (Exception e) {
-            System.out.println("hello_3");
-            System.out.println(e);
-        }
-        return result;
-    }
-
+    /*private String getSingleString(String col) {
+     String result = "Fehler";
+     try {
+     makeConnection();
+     SQLStatement.executeQuery(SQLCommand);
+     ResultSet Results = SQLStatement.executeQuery(SQLCommand);
+     while (Results.next()) {
+     result = Results.getString(col);
+     System.out.println(result);
+     }
+     dbConnection.close();
+     } catch (Exception e) {
+     System.out.println("hello_2");
+     System.out.println(e);
+     }
+     return result;
+     }*/
     private int getLastId(String relation, String col) {
         SQLCommand = "select MAX( " + col + " ) as " + col + " from " + relation;
         int result = -1;
@@ -124,73 +109,32 @@ public class DBAdapter {
         return result;
     }
 
-    private int getIntFrom3Relations(String table1, String table1Col, String table2, String table3, String col, int index) {
-        int val = -1;
-        SQLCommand = "select * from " + table1 + "," + table2 + "," + table3
-                + " where " + table1 + "." + table1Col + " = " + table2 + "." + table1Col
-                + " and " + table2 + ".ID =" + table3 + ".ID "
-                + " and " + table1 + "." + table1Col + " = " + (index + 1);
-        try {
-            makeConnection();
-            ResultSet Results = SQLStatement.executeQuery(SQLCommand);
-            while (Results.next()) {
-                val = Results.getInt(col);
-            }
-            dbConnection.close();
-        } catch (Exception e) {
-            System.out.println("hello_4");
-            System.out.println(e);
-        }
-        return val;
-    }
-
     public ArrayList<String> getAllFahrerAsStringList() {
-        SQLCommand = "select * from Fahrer";
-
-        // ArrayList<String> temp = new ArrayList<String>();
-        String[] cols = {"PNR", "VNAME", "NNAME"};
-        //fahrer = queryDBPutColsInStringList(temp, cols);
-        return queryDBPutColsInStringList(cols);
+        updateFahrerList();
+        ArrayList<String> temp = new ArrayList<String>();
+        for (int i = 0; i < fahrerList.size(); i++) {
+            temp.add(fahrerList.get(i).getFahrerAsString());
+        }
+        return temp;
     }
 
     public ArrayList<String> getOrders() {
-        SQLCommand = "select Auftrag.ANR, PNR, DATE, TIME, STATUS, StartX, StartY, ZielX,  ZielY "
-                + "from Auftrag, "
-                + "(select ANR, X as StartX, Y as StartY from Adresse, Abholadresse"
-                + " where Adresse.ID = Abholadresse.ID) as StartAdr, "
-                + "(select ANR, X as ZielX, Y as ZielY from Adresse as a2, Ziel "
-                + "where a2.ID = Ziel.ID) as ZielAdr "
-                + "where Auftrag.ANR = StartAdr.ANR "
-                + "and Auftrag.ANR = ZielAdr.ANR";
-
-        String[] cols = {"ANR", "PNR", "DATE", "TIME", "StartX", "StartY", "ZielX", "ZielY", "STATUS"};
-        
-        return queryDBPutColsInStringList(cols);
+        updateOrdersList();
+        ArrayList<String> temp = new ArrayList<String>();
+        for (int i = 0; i < ordersList.size(); i++) {
+            temp.add(ordersList.get(i).getOrderAsString());
+        }
+        numOfOrders = temp.size();
+        return temp;
     }
 
-    private String getOrderForShortestWay(int aNr) {
+    private String getOrderById(int aNr) {
         aNr += 1;
         String order = "";
-
-        SQLCommand = "select Auftrag.ANR, PNR, DATE, TIME, STATUS, StartX, StartY, ZielX,  ZielY "
-                + "from Auftrag, "
-                + "(select ANR, X as StartX, Y as StartY from Adresse, Abholadresse"
-                + " where Adresse.ID = Abholadresse.ID) as StartAdr, "
-                + "(select ANR, X as ZielX, Y as ZielY from Adresse as a2, Ziel "
-                + "where a2.ID = Ziel.ID) as ZielAdr "
-                + "where Auftrag.ANR = StartAdr.ANR "
-                + "and Auftrag.ANR = ZielAdr.ANR "
-                // + "and Auftrag.STATUS = \"nicht in Bearbeitung\" "
-                + "and Auftrag.ANR = " + aNr;
-
-        String[] cols = {"ANR", "DATE", "TIME", "StartX", "StartY", "ZielX", "ZielY"};
-        orders = queryDBPutColsInStringList(cols);
-        numOfOrders = orders.size();
-        System.out.println("num of orders: " + numOfOrders);
-        if (orders.size() > 0) {
-            order = orders.get(0);
-        } else {
-            order = "Keine offenen Aufträge im System";
+        for (int i = 0; i < ordersList.size(); i++) {
+            if (ordersList.get(i).getANr() == aNr) {
+                order = ordersList.get(i).getOrderAsString();
+            }
         }
         return order;
     }
@@ -219,58 +163,58 @@ public class DBAdapter {
         SQLCommand = "insert into Ziel (ANR, ID) "
                 + "values ( " + aNr + ", " + zielAdrId + ")";
         performInsertOperation();
+
+        updateOrdersList();
     }
 
     public void updateFahrer(String fahrerNewFName, String fahrerNewLName, int index) {
-        //index = 1;
+        if (index == -1) {
+            createNewFahrer(fahrerNewFName, fahrerNewLName);
+        } else {
+            changeFahrer(fahrerNewFName, fahrerNewLName, index);
+        }
+
+        updateFahrerList();
+    }
+
+    private void changeFahrer(String fahrerNewFName, String fahrerNewLName, int index) {
+        SQLCommand = "UPDATE Fahrer "
+                + "SET VNAME = \"" + fahrerNewFName + "\", NNAME = \"" + fahrerNewLName + "\" WHERE PNR = " + (index + 1);
+        performInsertOperation();
+    }
+
+    private void createNewFahrer(String fahrerNewFName, String fahrerNewLName) {
         int fahrerX = rand.nextInt(xSize);
         int fahrerY = rand.nextInt(ySize);
 
-        if (index == -1) {
-            SQLCommand = "INSERT INTO Fahrer (VNAME, NNAME) "
-                    + "VALUES ( \"" + fahrerNewFName + "\" , \"" + fahrerNewLName + "\" )";
-            performInsertOperation();
+        SQLCommand = "INSERT INTO Fahrer (VNAME, NNAME) "
+                + "VALUES ( \"" + fahrerNewFName + "\" , \"" + fahrerNewLName + "\" )";
+        performInsertOperation();
+        int fahrerID = getLastId("Fahrer", "PNR");
 
-            int fahrerID = getLastId("Fahrer", "PNR");
+        SQLCommand = "INSERT INTO Adresse(X, Y) "
+                + "VALUES (\"" + fahrerX + "\" , \"" + fahrerY + "\")";
+        performInsertOperation();
+        int adressID = getLastId("Adresse", "ID");
 
-            SQLCommand = "INSERT INTO Adresse(X, Y) "
-                    + "VALUES (\"" + fahrerX + "\" , \"" + fahrerY + "\")";
-            performInsertOperation();
-
-            int adressID = getLastId("Adresse", "ID");
-
-            SQLCommand = "INSERT INTO Standort "
-                    + "VALUES ( \"" + fahrerID + "\",\"" + adressID + "\")";
-            performInsertOperation();
-
-        } else {
-            SQLCommand = "UPDATE Fahrer "
-                    + "SET VNAME = \"" + fahrerNewFName + "\", NNAME = \"" + fahrerNewLName + "\" WHERE PNR = " + (index + 1);
-            performInsertOperation();
-        }
+        SQLCommand = "INSERT INTO Standort "
+                + "VALUES ( \"" + fahrerID + "\",\"" + adressID + "\")";
+        performInsertOperation();
     }
 
     public String getFahrerVNameAt(int fahrerListIndexOfSelected) {
-        System.out.println("getVName, index: " + fahrerListIndexOfSelected);
-        SQLCommand = "select * "
-                + "from Fahrer "
-                + "where PNR = " + (fahrerListIndexOfSelected + 1);
-        return getSingleString("VNAME");
+        return fahrerList.get(fahrerListIndexOfSelected).getVName();
     }
 
     public String getFahrerNNameAt(int fahrerListIndexOfSelected) {
-        System.out.println("getNName , index: " + fahrerListIndexOfSelected);
-        SQLCommand = "select * "
-                + "from Fahrer "
-                + "where PNR = " + (fahrerListIndexOfSelected + 1);
-        return getSingleString("NNAME");
+        return fahrerList.get(fahrerListIndexOfSelected).getNName();
     }
 
     public String findClosestOrder(int fahrerComboIndexOfSelected) {
         String closestOrder = "";
 
-        int fahrerX = getIntFrom3Relations("Fahrer", "PNR", "Standort", "Adresse", "X", fahrerComboIndexOfSelected);
-        int fahrerY = getIntFrom3Relations("Fahrer", "PNR", "Standort", "Adresse", "Y", fahrerComboIndexOfSelected);
+        int fahrerX = fahrerList.get(fahrerComboIndexOfSelected).getX();
+        int fahrerY = fahrerList.get(fahrerComboIndexOfSelected).getY();
 
         System.out.println("x: " + fahrerX);
         System.out.println("y: " + fahrerY);
@@ -278,8 +222,8 @@ public class DBAdapter {
         int lowestDist = 100;
         int indexOfLowest = -1;
         for (int i = 0; i < numOfOrders; i++) {
-            int x = getIntFrom3Relations("Auftrag", "ANR", "Abholadresse", "Adresse", "X", i);
-            int y = getIntFrom3Relations("Auftrag", "ANR", "Abholadresse", "Adresse", "Y", i);
+            int x = ordersList.get(i).getStartX();
+            int y = ordersList.get(i).getStartY();
             int dist = Math.abs(fahrerX - x) + Math.abs(fahrerY - y);
             if (dist < lowestDist) {
                 lowestDist = dist;
@@ -289,9 +233,25 @@ public class DBAdapter {
 
         }
         System.out.println("lowest dist: " + lowestDist + " , index: " + indexOfLowest);
-        closestOrder = getOrderForShortestWay(indexOfLowest);
         setStatus(indexOfLowest);
+        setDriver(fahrerComboIndexOfSelected, indexOfLowest);
+        updateOrdersList();
+        updateFahrerList();
+        closestOrder = getOrderById(indexOfLowest);
+
         return closestOrder;
+    }
+
+    private void setDriver(int index, int aNr) {
+        index += 1;
+        aNr += 1;
+        SQLCommand = "update Auftrag "
+                + "set PNR = " + index + " "
+                + "where ANR = " + aNr;
+        performInsertOperation();
+        //setOrderStatusInFahrerList(index, aNr);
+
+        System.out.println("update performed");
     }
 
     private void setStatus(int aNr) {
@@ -301,6 +261,98 @@ public class DBAdapter {
                 + "WHERE ANR = " + aNr;
         performInsertOperation();
         System.out.println("update performed");
+    }
+
+    public String getActualOrderForDriver(int driverIndex) {
+        int orderNum = -1;
+        for (int i = 0; i < fahrerList.size(); i++) {
+            if (fahrerList.get(i).getPNR() == driverIndex + 1) {
+                orderNum = fahrerList.get(i).getOrder();
+            }
+        }
+        if(orderNum > 0){
+            for(int j = 0; j < ordersList.size(); j++){
+                if(ordersList.get(j).getANr() == orderNum){
+                    return ordersList.get(j).getOrderAsString();
+                }
+            }
+        }
+        return "kein Auftrag zugeteilt";
+    }
+
+    public int fahrerOrderNum(int driverIndex) {
+        for (int i = 0; i < fahrerList.size(); i++) {
+            if (fahrerList.get(i).getPNR() == driverIndex + 1) {
+                return fahrerList.get(i).getOrder();
+            }
+        }
+        return -2;
+    }
+
+    private void updateOrdersList() {
+        ordersList = new ArrayList<Order>();
+        SQLCommand = "select Auftrag.ANR, PNR, DATE, TIME, STATUS, StartX, StartY, ZielX,  ZielY "
+                + "from Auftrag, "
+                + "(select ANR, X as StartX, Y as StartY from Adresse, Abholadresse"
+                + " where Adresse.ID = Abholadresse.ID) as StartAdr, "
+                + "(select ANR, X as ZielX, Y as ZielY from Adresse as a2, Ziel "
+                + "where a2.ID = Ziel.ID) as ZielAdr "
+                + "where Auftrag.ANR = StartAdr.ANR "
+                + "and Auftrag.ANR = ZielAdr.ANR";
+        try {
+            makeConnection();
+            ResultSet Results = SQLStatement.executeQuery(SQLCommand);
+
+            while (Results.next()) {
+                Order temp = new Order(Results.getInt("ANR"), Results.getInt("PNR"), Results.getInt("StartX"), Results.getInt("StartY"),
+                        Results.getInt("Zielx"), Results.getInt("ZielY"), Results.getString("STATUS"));
+                ordersList.add(temp);
+                System.out.println(temp.getOrderAsString());
+            }
+            dbConnection.close();
+        } catch (Exception e) {
+            System.out.println(e);
+            System.out.println("Exception during update ordersList");
+        }
+    }
+
+    private void updateFahrerList() {
+        fahrerList = new ArrayList<Fahrer>();
+        SQLCommand = "Select Fahrer.PNR, VNAME, NNAME, X, Y "
+                + "from Fahrer, Adresse, Standort "
+                + "where Fahrer.PNR = Standort.PNR "
+                + "and Standort.ID = Adresse.ID";
+        try {
+            makeConnection();
+            ResultSet Results = SQLStatement.executeQuery(SQLCommand);
+
+            while (Results.next()) {
+                Fahrer temp = new Fahrer(Results.getString("VNAME"), Results.getString("NNAME"),
+                        Results.getInt("PNR"), Results.getInt("X"), Results.getInt("Y"));
+
+                fahrerList.add(temp);
+                System.out.println(temp.getFahrerAsString());
+            }
+            dbConnection.close();
+            setOrderStatusInFahrerList();
+        } catch (Exception e) {
+            System.out.println("hello_3");
+            System.out.println(e);
+        }
+    }
+
+    private void setOrderStatusInFahrerList() {
+        for (int i = 0; i < ordersList.size(); i++) {
+            if (ordersList.get(i).getStatus().equals("in Bearbeitung")) {
+                int tempANr = ordersList.get(i).getANr();
+                int tempPNR = ordersList.get(i).getPNr();
+                for (int j = 0; j < fahrerList.size(); j++) {
+                    if (fahrerList.get(j).getPNR() == tempPNR) {
+                        fahrerList.get(j).setOrder(tempANr);
+                    }
+                }
+            }
+        }
     }
 
 }
