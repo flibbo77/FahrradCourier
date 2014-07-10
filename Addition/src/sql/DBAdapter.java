@@ -10,6 +10,8 @@ import java.util.Random;
 public class DBAdapter {
 
     private int xSize, ySize;
+    private int numOfOrders;
+
     private ArrayList<String> orders;
     private ArrayList<String> fahrer;
 
@@ -94,7 +96,7 @@ public class DBAdapter {
                 System.out.println("hier");
                 //result.add(Results.getString(cols[0]) + " " + Results.getString(cols[1]));
                 String str = "";
-                for(int i = 0; i < cols.length; i++){
+                for (int i = 0; i < cols.length; i++) {
                     str += Results.getString(cols[i]) + "   ";
                 }
                 result.add(str);
@@ -110,8 +112,7 @@ public class DBAdapter {
     }
 
     private int getLastId(String relation, String col) {
-        SQLCommand = "select MA"
-                + "X( " + col + " ) as " + col + " from " + relation;
+        SQLCommand = "select MAX( " + col + " ) as " + col + " from " + relation;
         int result = -1;
 
         try {
@@ -134,10 +135,36 @@ public class DBAdapter {
         return result;
     }
 
+    private int getIntFrom3Relations(String table1, String table1Col, String table2, String table3, String col, int index) {
+        int val = -1;
+        SQLCommand = "select * from " + table1 + "," + table2 + "," + table3
+                + " where " + table1 + "." + table1Col + " = " + table2 + "." + table1Col
+                + " and " + table2 + ".ID =" + table3 + ".ID "
+                + " and " + table1 + "." + table1Col + " = " + (index + 1);
+        try {
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+            String url = "jdbc:mysql://132.199.139.24:3306/mmdb14_aponbhuiya?user=a.bhuiya&password=mmdb";
+            Connection dbConnection = DriverManager.getConnection(url);
+            Statement SQLStatement = dbConnection.createStatement();
+
+            ResultSet Results = SQLStatement.executeQuery(SQLCommand);
+
+            while (Results.next()) {
+                val = Results.getInt(col);
+            }
+
+            dbConnection.close();
+        } catch (Exception e) {
+            System.out.println("hello_4");
+            System.out.println(e);
+        }
+        return val;
+    }
+
     public ArrayList<String> getFahrer() {
         SQLCommand = "select * from Fahrer";
         ArrayList<String> temp = new ArrayList<String>();
-        String[] cols = {"VNAME", "NNAME"};
+        String[] cols = {"PNR", "VNAME", "NNAME"};
         fahrer = queryDB(temp, cols);
         return fahrer;
     }
@@ -149,15 +176,42 @@ public class DBAdapter {
                 + " where Adresse.ID = Abholadresse.ID) as StartAdr, "
                 + "(select ANR, X as ZielX, Y as ZielY from Adresse as a2, Ziel "
                 + "where a2.ID = Ziel.ID) as ZielAdr "
-                + "where Auftrag.ANR = StartAdr.ANR " 
-                + "and Auftrag.ANR = ZielAdr.ANR"; 
-                    
-        
+                + "where Auftrag.ANR = StartAdr.ANR "
+                + "and Auftrag.ANR = ZielAdr.ANR";
+
         ArrayList<String> temp = new ArrayList<String>();
         String[] cols = {"ANR", "PNR", "DATE", "TIME", "StartX", "StartY", "ZielX", "ZielY", "STATUS"};
         orders = queryDB(temp, cols);
-        System.out.println("orders: " + orders);
+        numOfOrders = orders.size();
+        System.out.println("num of orders: " + numOfOrders);
         return orders;
+    }
+
+    private String getOrderForShortestWay(int aNr) {
+        aNr += 1;
+        String order = "";
+        ArrayList<String> temp = new ArrayList<String>();
+        SQLCommand = "select Auftrag.ANR, PNR, DATE, TIME, STATUS, StartX, StartY, ZielX,  ZielY "
+                + "from Auftrag, "
+                + "(select ANR, X as StartX, Y as StartY from Adresse, Abholadresse"
+                + " where Adresse.ID = Abholadresse.ID) as StartAdr, "
+                + "(select ANR, X as ZielX, Y as ZielY from Adresse as a2, Ziel "
+                + "where a2.ID = Ziel.ID) as ZielAdr "
+                + "where Auftrag.ANR = StartAdr.ANR "
+                + "and Auftrag.ANR = ZielAdr.ANR "
+                + "and Auftrag.STATUS = \"nicht in Bearbeitung\" "
+                + "and Auftrag.ANR = " + aNr;
+
+        String[] cols = {"ANR", "DATE", "TIME", "StartX", "StartY", "ZielX", "ZielY"};
+        orders = queryDB(temp, cols);
+        numOfOrders = orders.size();
+        System.out.println("num of orders: " + numOfOrders);
+        if (orders.size() > 0) {
+            order = orders.get(0);
+        } else {
+            order = "Keine offenen Aufträge im System";
+        }
+        return order;
     }
 
     public void createOrder(int startX, int startY, int goalX, int goalY) {
@@ -230,4 +284,42 @@ public class DBAdapter {
                 + "where PNR = " + (fahrerListIndexOfSelected + 1);
         return getSingleString("NNAME");
     }
+
+    public String findClosestOrder(int fahrerComboIndexOfSelected) {
+        String closestOrder = "Leberkässemmeln holen";
+
+        int fahrerX = getIntFrom3Relations("Fahrer", "PNR", "Standort", "Adresse", "X", fahrerComboIndexOfSelected);
+        int fahrerY = getIntFrom3Relations("Fahrer", "PNR", "Standort", "Adresse", "Y", fahrerComboIndexOfSelected);
+
+        System.out.println("x: " + fahrerX);
+        System.out.println("y: " + fahrerY);
+
+        int lowestDist = 100;
+        int indexOfLowest = -1;
+        for (int i = 0; i < numOfOrders; i++) {
+            int x = getIntFrom3Relations("Auftrag", "ANR", "Abholadresse", "Adresse", "X", i);
+            int y = getIntFrom3Relations("Auftrag", "ANR", "Abholadresse", "Adresse", "Y", i);
+            int dist = Math.abs(fahrerX - x) + Math.abs(fahrerY - y);
+            if (dist < lowestDist) {
+                lowestDist = dist;
+                indexOfLowest = i;
+            }
+            System.out.println("x: " + x + " , y: " + y + " , dist: " + dist);
+          
+        }
+        System.out.println("lowest dist: " + lowestDist + " , index: " + indexOfLowest);
+        closestOrder = getOrderForShortestWay(indexOfLowest);
+        setStatus(indexOfLowest);
+        return closestOrder;
+    }
+
+    private void setStatus(int aNr) {
+        aNr += 1;
+        SQLCommand = "UPDATE Auftrag "
+                + "SET STATUS = \"in Bearbeitung\" "
+                + "WHERE ANR = " + aNr;
+        performInsertOperation();
+        System.out.println("update performed");
+    }
+
 }
