@@ -3,14 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package my.Addition;
 
 import ListManagement.ListManager;
 import sql.DBAdapter;
 import javax.swing.*;
 import java.util.ArrayList;
-
 
 /**
  *
@@ -21,24 +19,23 @@ public class AdditionUI extends javax.swing.JFrame {
     /**
      * Creates new form AdditionUI
      */
-    
     private int startX;
     private int startY;
     private int goalX;
     private int goalY;
     private int sizeX, sizeY;
-    
+
     private int fahrerListIndexOfSelected;
     private int fahrerComboIndexOfSelected;
-    
+
     private String fahrerNewFName;
     private String fahrerNewLName;
-    
+
     private DBAdapter dbAdapter;
-    
+
     private ListManager fahrerListManager;
     private ListManager ordersListManager;
-            
+
     public AdditionUI() {
         initVariables();
         initComponents();
@@ -517,19 +514,19 @@ public class AdditionUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jTextField3ActionPerformed
 
     private void clearButActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButActionPerformed
-      
+
     }//GEN-LAST:event_clearButActionPerformed
 
     private void exitButActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButActionPerformed
-        
+
     }//GEN-LAST:event_exitButActionPerformed
 
     private void addButtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtActionPerformed
-        
+
     }//GEN-LAST:event_addButtActionPerformed
 
     private void orderStartXBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_orderStartXBoxActionPerformed
-       startX = (Integer.parseInt(orderStartXBox.getSelectedItem().toString())); 
+        startX = (Integer.parseInt(orderStartXBox.getSelectedItem().toString()));
     }//GEN-LAST:event_orderStartXBoxActionPerformed
 
     private void orderGoalXBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_orderGoalXBoxActionPerformed
@@ -537,7 +534,10 @@ public class AdditionUI extends javax.swing.JFrame {
     }//GEN-LAST:event_orderGoalXBoxActionPerformed
 
     private void orderDoneButActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_orderDoneButActionPerformed
-        // TODO add your handling code here:
+        dbAdapter.markOrderDone(fahrerComboIndexOfSelected);
+        System.out.println("sag an: " + fahrerComboIndexOfSelected);
+        updateOrderViews();
+        updateFahrerViews();
     }//GEN-LAST:event_orderDoneButActionPerformed
 
     private void editFahrerFNameTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editFahrerFNameTextActionPerformed
@@ -545,7 +545,7 @@ public class AdditionUI extends javax.swing.JFrame {
     }//GEN-LAST:event_editFahrerFNameTextActionPerformed
 
     private void orderStartYBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_orderStartYBoxActionPerformed
-         startY = (Integer.parseInt(orderStartYBox.getSelectedItem().toString()));
+        startY = (Integer.parseInt(orderStartYBox.getSelectedItem().toString()));
     }//GEN-LAST:event_orderStartYBoxActionPerformed
 
     private void orderGoalYBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_orderGoalYBoxActionPerformed
@@ -553,7 +553,7 @@ public class AdditionUI extends javax.swing.JFrame {
     }//GEN-LAST:event_orderGoalYBoxActionPerformed
 
     private void submitOrderButActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitOrderButActionPerformed
-        if(startX != -1 && startY != -1 && goalX != -1 && goalY != -1 ){
+        if (startX != -1 && startY != -1 && goalX != -1 && goalY != -1) {
             dbAdapter.createOrder(startX, startY, goalX, goalY);
             updateOrderViews();
         }
@@ -562,36 +562,43 @@ public class AdditionUI extends javax.swing.JFrame {
     private void submitFahrerButActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitFahrerButActionPerformed
         fahrerNewFName = editFahrerFNameText.getText();
         fahrerNewLName = editFahrerLNameText.getText();
-        dbAdapter.updateFahrer(fahrerNewFName, fahrerNewLName, fahrerListIndexOfSelected);  
+        dbAdapter.updateFahrer(fahrerNewFName, fahrerNewLName, fahrerListIndexOfSelected);
         updateFahrerViews();
         fahrerListIndexOfSelected = -1;
         fahrerListe.clearSelection();
         editFahrerFNameText.setText("");
         editFahrerLNameText.setText("");
-        
+
     }//GEN-LAST:event_submitFahrerButActionPerformed
 
     private void fahrerListeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fahrerListeMouseClicked
-       fahrerListIndexOfSelected = fahrerListe.getSelectedIndex();
-       System.out.println(fahrerListIndexOfSelected);
-       String tempVName = dbAdapter.getFahrerVNameAt(fahrerListIndexOfSelected);
-       String tempNName = dbAdapter.getFahrerNNameAt(fahrerListIndexOfSelected);
-       editFahrerFNameText.setText(tempVName);
-       editFahrerLNameText.setText(tempNName);
+        fahrerListIndexOfSelected = fahrerListe.getSelectedIndex();
+        System.out.println(fahrerListIndexOfSelected);
+        String tempVName = dbAdapter.getFahrerVNameAt(fahrerListIndexOfSelected);
+        String tempNName = dbAdapter.getFahrerNNameAt(fahrerListIndexOfSelected);
+        editFahrerFNameText.setText(tempVName);
+        editFahrerLNameText.setText(tempNName);
     }//GEN-LAST:event_fahrerListeMouseClicked
 
     private void retrieveOrderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_retrieveOrderActionPerformed
+        System.out.println(evt.getSource().toString());
         fahrerComboIndexOfSelected = chooseFahrerBox.getSelectedIndex();
         String assignedOrder = dbAdapter.findClosestOrder(fahrerComboIndexOfSelected);
         actualOrderLabel.setText(assignedOrder);
         updateOrderViews();
-        
+        retrieveOrder.setEnabled(false);
+        orderDoneBut.setEnabled(true);
+
     }//GEN-LAST:event_retrieveOrderActionPerformed
 
     private void chooseFahrerBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chooseFahrerBoxActionPerformed
+        System.out.println("chooseBoxActionPerformed, index: " + chooseFahrerBox.getSelectedIndex());
         fahrerComboIndexOfSelected = chooseFahrerBox.getSelectedIndex();
-        actualOrderLabel.setText(dbAdapter.getActualOrderForDriver(fahrerComboIndexOfSelected));
-        System.out.println(fahrerComboIndexOfSelected);
+        if (fahrerComboIndexOfSelected >= 0) {
+            actualOrderLabel.setText(dbAdapter.getActualOrderForDriver(fahrerComboIndexOfSelected));
+            retrieveOrder.setEnabled(!dbAdapter.alreadyHasJob(fahrerComboIndexOfSelected));
+            orderDoneBut.setEnabled(dbAdapter.alreadyHasJob(fahrerComboIndexOfSelected));
+        }
     }//GEN-LAST:event_chooseFahrerBoxActionPerformed
 
     /**
@@ -628,55 +635,55 @@ public class AdditionUI extends javax.swing.JFrame {
             }
         });
     }
-    
-     private void initVariables() {
+
+    private void initVariables() {
         startX = -1;
         startY = -1;
         goalX = -1;
         goalY = -1;
-        
+
         sizeX = 10;
         sizeY = 10;
-        
+
         fahrerListIndexOfSelected = -1;
-        
+
         fahrerNewFName = "";
         fahrerNewLName = "";
-        
+
         dbAdapter = new DBAdapter(sizeX, sizeY);
     }
 
     private void updateOrderViews() {
-        ordersListManager.updateList(dbAdapter.getOrders());
+        ordersListManager.updateList(dbAdapter.getAllOrdersAsStringList());
     }
-    
+
     private void updateFahrerViews() {
-        fahrerListManager.updateList(dbAdapter.getAllFahrerAsStringList());
-        updateFahrerComboBox();
+        ArrayList<String> temp = dbAdapter.getAllFahrerAsStringList();
+        fahrerListManager.updateList(temp);
+        updateFahrerComboBox(temp);
     }
-    
-    private void updateFahrerComboBox(){
+
+    private void updateFahrerComboBox(ArrayList<String> list) {
         chooseFahrerBox.removeAllItems();
-        ArrayList<String> list = dbAdapter.getAllFahrerAsStringList();
-        System.out.println("Liste: ");       
-        for(int i = 0; i <list.size(); i++){
+
+        for (int i = 0; i < list.size(); i++) {
             String str = list.get(i);
             chooseFahrerBox.addItem(str);
-            System.out.println(list.get(i));
         }
     }
-    
-     private void initLists() {
-         DefaultListModel fahrerListModel = new DefaultListModel();
-         fahrerListe.setModel(fahrerListModel);
-         fahrerListManager = new ListManager(fahrerListe, fahrerListModel);
-         fahrerListManager.updateList(dbAdapter.getAllFahrerAsStringList());
-         updateFahrerComboBox();
-         
-         DefaultListModel ordersListModel = new DefaultListModel();
-         orderListe.setModel(ordersListModel);
-         ordersListManager = new ListManager(orderListe, ordersListModel);
-         //ordersListManager.updateList(dbAdapter.getOrders());
+
+    private void initLists() {
+        DefaultListModel fahrerListModel = new DefaultListModel();
+        fahrerListe.setModel(fahrerListModel);
+        fahrerListManager = new ListManager(fahrerListe, fahrerListModel);
+        ArrayList<String> temp = dbAdapter.getAllFahrerAsStringList();
+        fahrerListManager.updateList(temp);
+        updateFahrerComboBox(temp);
+
+        DefaultListModel ordersListModel = new DefaultListModel();
+        orderListe.setModel(ordersListModel);
+        ordersListManager = new ListManager(orderListe, ordersListModel);
+        //ordersListManager.updateList(dbAdapter.getOrders());
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -740,9 +747,4 @@ public class AdditionUI extends javax.swing.JFrame {
     private javax.swing.JButton submitOrderBut;
     // End of variables declaration//GEN-END:variables
 
-    
-
-   
-
-   
 }

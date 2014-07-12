@@ -64,4 +64,11 @@ public class Fahrer {
     public int getOrder() {
         return order;
     }
+    
+    public boolean hasActualJob(){
+        if(order == -1){
+            return false;
+        }
+        return true;
+    }
 }

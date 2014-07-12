@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
 import util.Fahrer;
+import util.FahrerList;
 import util.Order;
+import util.OrdersList;
 
 public class DBAdapter {
 
@@ -17,10 +19,8 @@ public class DBAdapter {
     private int xSize, ySize;
     private int numOfOrders;
 
-    private ArrayList<String> orders;
-    private ArrayList<String> fahrer;
-    private ArrayList<Fahrer> fahrerList;
-    private ArrayList<Order> ordersList;
+    private FahrerList fahrerList;
+    private OrdersList ordersList;
 
     private Random rand;
 
@@ -33,6 +33,10 @@ public class DBAdapter {
     private String actDate;
 
     Date date;
+    
+    private static final String BUSY = "in Bearbeitung";
+    private static final String FINISHED = "erledigt";
+    private static final String OPEN = "nicht in Bearbeitung";
 
     public DBAdapter(int xSize, int ySize) {
         this.xSize = xSize;
@@ -58,7 +62,7 @@ public class DBAdapter {
             SQLStatement = dbConnection.createStatement();
 
         } catch (Exception e) {
-            System.out.println("hello_1");
+            System.out.println("Error makeing Connection");
             System.out.println(e);
         }
     }
@@ -69,28 +73,11 @@ public class DBAdapter {
             SQLStatement.executeUpdate(SQLCommand);
             dbConnection.close();
         } catch (Exception e) {
-            System.out.println("hello_1");
+            System.out.println("error during insert operation");
             System.out.println(e);
         }
     }
 
-    /*private String getSingleString(String col) {
-     String result = "Fehler";
-     try {
-     makeConnection();
-     SQLStatement.executeQuery(SQLCommand);
-     ResultSet Results = SQLStatement.executeQuery(SQLCommand);
-     while (Results.next()) {
-     result = Results.getString(col);
-     System.out.println(result);
-     }
-     dbConnection.close();
-     } catch (Exception e) {
-     System.out.println("hello_2");
-     System.out.println(e);
-     }
-     return result;
-     }*/
     private int getLastId(String relation, String col) {
         SQLCommand = "select MAX( " + col + " ) as " + col + " from " + relation;
         int result = -1;
@@ -103,7 +90,7 @@ public class DBAdapter {
             }
             dbConnection.close();
         } catch (Exception e) {
-            System.out.println("hello_4");
+            System.out.println("error during get last id");
             System.out.println(e);
         }
         return result;
@@ -111,32 +98,14 @@ public class DBAdapter {
 
     public ArrayList<String> getAllFahrerAsStringList() {
         updateFahrerList();
-        ArrayList<String> temp = new ArrayList<String>();
-        for (int i = 0; i < fahrerList.size(); i++) {
-            temp.add(fahrerList.get(i).getFahrerAsString());
-        }
-        return temp;
+        return fahrerList.getAllFahrerAsStringList();
     }
 
-    public ArrayList<String> getOrders() {
+    public ArrayList<String> getAllOrdersAsStringList() {
         updateOrdersList();
-        ArrayList<String> temp = new ArrayList<String>();
-        for (int i = 0; i < ordersList.size(); i++) {
-            temp.add(ordersList.get(i).getOrderAsString());
-        }
+        ArrayList<String> temp = ordersList.getAllOrdersAsStringList();
         numOfOrders = temp.size();
         return temp;
-    }
-
-    private String getOrderById(int aNr) {
-        aNr += 1;
-        String order = "";
-        for (int i = 0; i < ordersList.size(); i++) {
-            if (ordersList.get(i).getANr() == aNr) {
-                order = ordersList.get(i).getOrderAsString();
-            }
-        }
-        return order;
     }
 
     public void createOrder(int startX, int startY, int goalX, int goalY) {
@@ -163,7 +132,6 @@ public class DBAdapter {
         SQLCommand = "insert into Ziel (ANR, ID) "
                 + "values ( " + aNr + ", " + zielAdrId + ")";
         performInsertOperation();
-
         updateOrdersList();
     }
 
@@ -173,7 +141,6 @@ public class DBAdapter {
         } else {
             changeFahrer(fahrerNewFName, fahrerNewLName, index);
         }
-
         updateFahrerList();
     }
 
@@ -200,6 +167,7 @@ public class DBAdapter {
         SQLCommand = "INSERT INTO Standort "
                 + "VALUES ( \"" + fahrerID + "\",\"" + adressID + "\")";
         performInsertOperation();
+
     }
 
     public String getFahrerVNameAt(int fahrerListIndexOfSelected) {
@@ -210,87 +178,68 @@ public class DBAdapter {
         return fahrerList.get(fahrerListIndexOfSelected).getNName();
     }
 
+    public boolean alreadyHasJob(int fahrerComboIndexOfSelected) {
+        return fahrerList.get(fahrerComboIndexOfSelected).hasActualJob();
+    }
+
     public String findClosestOrder(int fahrerComboIndexOfSelected) {
         String closestOrder = "";
+        int fahrerPNr = fahrerComboIndexOfSelected + 1;
 
-        int fahrerX = fahrerList.get(fahrerComboIndexOfSelected).getX();
-        int fahrerY = fahrerList.get(fahrerComboIndexOfSelected).getY();
+        int fahrerX = fahrerList.getFahrerByPNR(fahrerPNr).getX();
+        int fahrerY = fahrerList.getFahrerByPNR(fahrerPNr).getY();
 
-        System.out.println("x: " + fahrerX);
-        System.out.println("y: " + fahrerY);
+        System.out.println("Fahrer x: " + fahrerX);
+        System.out.println("Fahrer y: " + fahrerY);
 
-        int lowestDist = 100;
-        int indexOfLowest = -1;
-        for (int i = 0; i < numOfOrders; i++) {
-            int x = ordersList.get(i).getStartX();
-            int y = ordersList.get(i).getStartY();
-            int dist = Math.abs(fahrerX - x) + Math.abs(fahrerY - y);
-            if (dist < lowestDist) {
-                lowestDist = dist;
-                indexOfLowest = i;
-            }
-            System.out.println("x: " + x + " , y: " + y + " , dist: " + dist);
+        ordersList.findClosestFromPosition(fahrerX, fahrerY);
+        int aNrOfLowest = ordersList.getANrOfClosest();
+        System.out.println("anr of closest: " + aNrOfLowest);
 
-        }
-        System.out.println("lowest dist: " + lowestDist + " , index: " + indexOfLowest);
-        setStatus(indexOfLowest);
-        setDriver(fahrerComboIndexOfSelected, indexOfLowest);
+        setOrderStatusInDB(aNrOfLowest, BUSY);
+        setDriverForOrderInDB(fahrerPNr, aNrOfLowest);
         updateOrdersList();
         updateFahrerList();
-        closestOrder = getOrderById(indexOfLowest);
+        closestOrder = ordersList.getOrderByANR(aNrOfLowest).getOrderAsString();
 
         return closestOrder;
     }
 
-    private void setDriver(int index, int aNr) {
-        index += 1;
-        aNr += 1;
+    private void setDriverForOrderInDB(int pNr, int aNr) {
+
         SQLCommand = "update Auftrag "
-                + "set PNR = " + index + " "
+                + "set PNR = " + pNr + " "
                 + "where ANR = " + aNr;
         performInsertOperation();
-        //setOrderStatusInFahrerList(index, aNr);
 
-        System.out.println("update performed");
+        System.out.println("set driver in Auftrag db performed");
     }
 
-    private void setStatus(int aNr) {
-        aNr += 1;
+    private void setOrderStatusInDB(int aNr, String status) {
+
         SQLCommand = "UPDATE Auftrag "
-                + "SET STATUS = \"in Bearbeitung\" "
+                + "SET STATUS = '" + status + "' " 
                 + "WHERE ANR = " + aNr;
         performInsertOperation();
-        System.out.println("update performed");
+        System.out.println(" status update in db performed");
     }
 
     public String getActualOrderForDriver(int driverIndex) {
         int orderNum = -1;
-        for (int i = 0; i < fahrerList.size(); i++) {
-            if (fahrerList.get(i).getPNR() == driverIndex + 1) {
-                orderNum = fahrerList.get(i).getOrder();
-            }
-        }
-        if(orderNum > 0){
-            for(int j = 0; j < ordersList.size(); j++){
-                if(ordersList.get(j).getANr() == orderNum){
-                    return ordersList.get(j).getOrderAsString();
-                }
-            }
+        orderNum = fahrerList.getFahrerByPNR(driverIndex + 1).getOrder();
+
+        if (orderNum > 0) {
+            return ordersList.getOrderByANR(orderNum).getOrderAsString();
         }
         return "kein Auftrag zugeteilt";
     }
 
     public int fahrerOrderNum(int driverIndex) {
-        for (int i = 0; i < fahrerList.size(); i++) {
-            if (fahrerList.get(i).getPNR() == driverIndex + 1) {
-                return fahrerList.get(i).getOrder();
-            }
-        }
-        return -2;
+        return fahrerList.getFahrerByPNR(driverIndex + 1).getOrder();
     }
 
     private void updateOrdersList() {
-        ordersList = new ArrayList<Order>();
+        ordersList = new OrdersList();
         SQLCommand = "select Auftrag.ANR, PNR, DATE, TIME, STATUS, StartX, StartY, ZielX,  ZielY "
                 + "from Auftrag, "
                 + "(select ANR, X as StartX, Y as StartY from Adresse, Abholadresse"
@@ -307,8 +256,8 @@ public class DBAdapter {
                 Order temp = new Order(Results.getInt("ANR"), Results.getInt("PNR"), Results.getInt("StartX"), Results.getInt("StartY"),
                         Results.getInt("Zielx"), Results.getInt("ZielY"), Results.getString("STATUS"));
                 ordersList.add(temp);
-                System.out.println(temp.getOrderAsString());
             }
+            System.out.println("update orders list");
             dbConnection.close();
         } catch (Exception e) {
             System.out.println(e);
@@ -317,7 +266,7 @@ public class DBAdapter {
     }
 
     private void updateFahrerList() {
-        fahrerList = new ArrayList<Fahrer>();
+        fahrerList = new FahrerList();
         SQLCommand = "Select Fahrer.PNR, VNAME, NNAME, X, Y "
                 + "from Fahrer, Adresse, Standort "
                 + "where Fahrer.PNR = Standort.PNR "
@@ -325,34 +274,56 @@ public class DBAdapter {
         try {
             makeConnection();
             ResultSet Results = SQLStatement.executeQuery(SQLCommand);
-
             while (Results.next()) {
+
                 Fahrer temp = new Fahrer(Results.getString("VNAME"), Results.getString("NNAME"),
                         Results.getInt("PNR"), Results.getInt("X"), Results.getInt("Y"));
 
                 fahrerList.add(temp);
-                System.out.println(temp.getFahrerAsString());
             }
             dbConnection.close();
-            setOrderStatusInFahrerList();
+
         } catch (Exception e) {
-            System.out.println("hello_3");
+            System.out.println("error during update fahrer list");
             System.out.println(e);
+        }
+       if (ordersList != null) {
+            setOrderStatusInFahrerList();
         }
     }
 
     private void setOrderStatusInFahrerList() {
         for (int i = 0; i < ordersList.size(); i++) {
-            if (ordersList.get(i).getStatus().equals("in Bearbeitung")) {
-                int tempANr = ordersList.get(i).getANr();
-                int tempPNR = ordersList.get(i).getPNr();
-                for (int j = 0; j < fahrerList.size(); j++) {
-                    if (fahrerList.get(j).getPNR() == tempPNR) {
-                        fahrerList.get(j).setOrder(tempANr);
-                    }
+            if (ordersList.size() > 0) {
+                if (ordersList.get(i).getStatus().equals(BUSY)) {
+                    int tempANr = ordersList.get(i).getANr();
+                    int tempPNR = ordersList.get(i).getPNr();
+                    fahrerList.getFahrerByPNR(tempPNR).setOrder(tempANr);
+                }
+                if(ordersList.get(i).getStatus().equals(FINISHED)){
+                    int tempPNR = ordersList.get(i).getPNr();
+                    fahrerList.getFahrerByPNR(tempPNR).setOrder(-1);
                 }
             }
         }
     }
 
+    public void markOrderDone(int fahrerComboIndexOfSelected) {
+        int pNr = fahrerComboIndexOfSelected + 1;
+        Order order = ordersList.getOrderByANR(fahrerList.getFahrerByPNR(pNr).getOrder());
+        int orderANr = order.getANr();
+        int orderGoalX = order.getGoalX();
+        int orderGoalY = order.getGoalY();
+        setFahrerNewPosition(orderGoalX, orderGoalY);
+        System.out.println("order erledigt: " + orderANr);
+        setOrderStatusInDB(orderANr, FINISHED);
+        updateOrdersList();
+        updateFahrerList();
+    }
+    
+    private void setFahrerNewPosition(int x, int y){
+        /*SQLCommand = "UPDATE Fahrer "
+                + "SET VNAME = \"" + fahrerNewFName + "\", NNAME = \"" + fahrerNewLName + "\" WHERE PNR = " + (index + 1);
+        performInsertOperation();*/
+    }
 }

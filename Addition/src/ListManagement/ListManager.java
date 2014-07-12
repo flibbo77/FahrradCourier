@@ -39,7 +39,6 @@ public class ListManager extends javax.swing.JFrame {
         listModel.clear();
         while(i < list.size()){
             addItem(list.get(i));
-            System.out.println(listModel.get(i));
             i++;
         }
         

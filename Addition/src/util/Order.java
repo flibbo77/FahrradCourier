@@ -46,6 +46,14 @@ public class Order {
     public int getStartX() {
         return startX;
     }
+    
+     public int getGoalY() {
+        return zielY;
+    }
+
+    public int getGoalX() {
+        return zielX;
+    }
 
     public String getStatus() {
         return status;
@@ -53,5 +61,12 @@ public class Order {
 
     public int getPNr() {
         return pNr;
+    }
+
+    boolean isOpen() {
+        if (status.equals("nicht in Bearbeitung")) {
+            return true;
+        }
+        return false;
     }
 }
