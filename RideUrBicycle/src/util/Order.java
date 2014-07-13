@@ -19,8 +19,11 @@ public class Order {
     private int zielY;
 
     private String status;
+    private String date;
+    private String time;
+    
 
-    public Order(int aNr, int pNr, int startx, int starty, int zielx, int ziely, String status) {
+    public Order(int aNr, int pNr, String date, String time, int startx, int starty, int zielx, int ziely, String status) {
         this.aNr = aNr;
         startX = startx;
         startY = starty;
@@ -28,11 +31,13 @@ public class Order {
         zielY = ziely;
         this.status = status;
         this.pNr = pNr;
+        this.date = date;
+        this.time = time;
     }
 
     public String getOrderAsString() {
-        return "ANr: " + aNr + " PNR: " + pNr + " startX: " + startX + " startY: "
-                + startY + " zielX: " + zielX + " zielY: " + zielY + " Status: " + status;
+        return aNr + "    " + pNr + "  " + date + "   " +time + "   start: " + startX + " / "
+                + startY + "   ziel: " + zielX + " / " + zielY + "    " + status;
     }
 
     public int getANr() {

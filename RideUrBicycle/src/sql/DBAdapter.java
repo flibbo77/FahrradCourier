@@ -10,6 +10,7 @@ import util.Fahrer;
 import util.FahrerList;
 import util.Order;
 import util.OrdersList;
+import util.Strings;
 
 public class DBAdapter {
 
@@ -33,10 +34,8 @@ public class DBAdapter {
     private String actDate;
 
     Date date;
+
     
-    private static final String BUSY = "in Bearbeitung";
-    private static final String FINISHED = "erledigt";
-    private static final String OPEN = "nicht in Bearbeitung";
 
     public DBAdapter(int xSize, int ySize) {
         this.xSize = xSize;
@@ -195,13 +194,15 @@ public class DBAdapter {
         ordersList.findClosestFromPosition(fahrerX, fahrerY);
         int aNrOfLowest = ordersList.getANrOfClosest();
         System.out.println("anr of closest: " + aNrOfLowest);
-
-        setOrderStatusInDB(aNrOfLowest, BUSY);
-        setDriverForOrderInDB(fahrerPNr, aNrOfLowest);
-        updateOrdersList();
-        updateFahrerList();
-        closestOrder = ordersList.getOrderByANR(aNrOfLowest).getOrderAsString();
-
+        if (aNrOfLowest > 0) {
+            setOrderStatusInDB(aNrOfLowest, Strings.BUSY);
+            setDriverForOrderInDB(fahrerPNr, aNrOfLowest);
+            updateOrdersList();
+            updateFahrerList();
+            closestOrder = ordersList.getOrderByANR(aNrOfLowest).getOrderAsString();
+        } else {
+            closestOrder = Strings.NO_ORDER_IN_DB;
+        }
         return closestOrder;
     }
 
@@ -218,7 +219,7 @@ public class DBAdapter {
     private void setOrderStatusInDB(int aNr, String status) {
 
         SQLCommand = "UPDATE Auftrag "
-                + "SET STATUS = '" + status + "' " 
+                + "SET STATUS = '" + status + "' "
                 + "WHERE ANR = " + aNr;
         performInsertOperation();
         System.out.println(" status update in db performed");
@@ -253,7 +254,8 @@ public class DBAdapter {
             ResultSet Results = SQLStatement.executeQuery(SQLCommand);
 
             while (Results.next()) {
-                Order temp = new Order(Results.getInt("ANR"), Results.getInt("PNR"), Results.getInt("StartX"), Results.getInt("StartY"),
+                Order temp = new Order(Results.getInt("ANR"), Results.getInt("PNR"), Results.getString("DATE"), Results.getString("TIME"),
+                        Results.getInt("StartX"), Results.getInt("StartY"),
                         Results.getInt("Zielx"), Results.getInt("ZielY"), Results.getString("STATUS"));
                 ordersList.add(temp);
             }
@@ -287,7 +289,7 @@ public class DBAdapter {
             System.out.println("error during update fahrer list");
             System.out.println(e);
         }
-       if (ordersList != null) {
+        if (ordersList != null) {
             setOrderStatusInFahrerList();
         }
     }
@@ -295,12 +297,12 @@ public class DBAdapter {
     private void setOrderStatusInFahrerList() {
         for (int i = 0; i < ordersList.size(); i++) {
             if (ordersList.size() > 0) {
-                if (ordersList.get(i).getStatus().equals(BUSY)) {
+                if (ordersList.get(i).getStatus().equals(Strings.BUSY)) {
                     int tempANr = ordersList.get(i).getANr();
                     int tempPNR = ordersList.get(i).getPNr();
                     fahrerList.getFahrerByPNR(tempPNR).setOrder(tempANr);
                 }
-                if(ordersList.get(i).getStatus().equals(FINISHED)){
+                if (ordersList.get(i).getStatus().equals(Strings.FINISHED)) {
                     int tempPNR = ordersList.get(i).getPNr();
                     fahrerList.getFahrerByPNR(tempPNR).setOrder(-1);
                 }
@@ -314,16 +316,17 @@ public class DBAdapter {
         int orderANr = order.getANr();
         int orderGoalX = order.getGoalX();
         int orderGoalY = order.getGoalY();
-        setFahrerNewPosition(orderGoalX, orderGoalY);
-        System.out.println("order erledigt: " + orderANr);
-        setOrderStatusInDB(orderANr, FINISHED);
+        setFahrerNewPosition(pNr, orderGoalX, orderGoalY);
+        setOrderStatusInDB(orderANr, Strings.FINISHED);
         updateOrdersList();
         updateFahrerList();
     }
-    
-    private void setFahrerNewPosition(int x, int y){
-        /*SQLCommand = "UPDATE Fahrer "
-                + "SET VNAME = \"" + fahrerNewFName + "\", NNAME = \"" + fahrerNewLName + "\" WHERE PNR = " + (index + 1);
-        performInsertOperation();*/
+
+    private void setFahrerNewPosition(int pNr, int x, int y) {
+        SQLCommand = "update Adresse set X = " + x + " ,Y = " + y + " "
+                + "where ID = "
+                + "(select ID  from Standort "
+                + "where PNR = " + pNr + ")";
+        performInsertOperation();
     }
 }

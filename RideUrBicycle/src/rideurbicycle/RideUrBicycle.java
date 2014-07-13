@@ -3,18 +3,20 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package my.Addition;
+package rideurbicycle;
 
 import ListManagement.ListManager;
-import sql.DBAdapter;
-import javax.swing.*;
+import java.awt.Cursor;
 import java.util.ArrayList;
+import javax.swing.*;
+import sql.DBAdapter;
+import util.Strings;
 
 /**
  *
  * @author flibbo
  */
-public class AdditionUI extends javax.swing.JFrame {
+public class RideUrBicycle extends javax.swing.JFrame {
 
     /**
      * Creates new form AdditionUI
@@ -36,7 +38,7 @@ public class AdditionUI extends javax.swing.JFrame {
     private ListManager fahrerListManager;
     private ListManager ordersListManager;
 
-    public AdditionUI() {
+    public RideUrBicycle() {
         initVariables();
         initComponents();
         initLists();
@@ -102,7 +104,6 @@ public class AdditionUI extends javax.swing.JFrame {
         jScrollPane4 = new javax.swing.JScrollPane();
         fahrerListe = new javax.swing.JList();
         jLabel12 = new javax.swing.JLabel();
-        jLabel16 = new javax.swing.JLabel();
         jPanel5 = new javax.swing.JPanel();
         chooseFahrerBox = new javax.swing.JComboBox();
         jLabel10 = new javax.swing.JLabel();
@@ -110,6 +111,7 @@ public class AdditionUI extends javax.swing.JFrame {
         actualOrderLabel = new javax.swing.JLabel();
         orderDoneBut = new javax.swing.JButton();
         retrieveOrder = new javax.swing.JButton();
+        jLabel17 = new javax.swing.JLabel();
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -229,10 +231,13 @@ public class AdditionUI extends javax.swing.JFrame {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("I want to ride my bicycle Kurier");
+        setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
         jLabel2.setText("Startadresse:");
 
         orderStartXBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", " " }));
+        orderStartXBox.setToolTipText("X Koordinate der Abholadresse");
         orderStartXBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 orderStartXBoxActionPerformed(evt);
@@ -244,6 +249,7 @@ public class AdditionUI extends javax.swing.JFrame {
         jLabel5.setText("Y:");
 
         orderStartYBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" }));
+        orderStartYBox.setToolTipText("Y Koordinate der Abholadresse");
         orderStartYBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 orderStartYBoxActionPerformed(evt);
@@ -255,6 +261,7 @@ public class AdditionUI extends javax.swing.JFrame {
         jLabel7.setText("X:");
 
         orderGoalXBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", " " }));
+        orderGoalXBox.setToolTipText("X Koordinate der Zieladresse");
         orderGoalXBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 orderGoalXBoxActionPerformed(evt);
@@ -264,6 +271,7 @@ public class AdditionUI extends javax.swing.JFrame {
         jLabel8.setText("Y:");
 
         orderGoalYBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" }));
+        orderGoalYBox.setToolTipText("Y Koordinate der Zieladresse");
         orderGoalYBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 orderGoalYBoxActionPerformed(evt);
@@ -271,13 +279,13 @@ public class AdditionUI extends javax.swing.JFrame {
         });
 
         jLabel9.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        jLabel9.setText("Neuer Auftrag");
+        jLabel9.setText("Neuen Auftrag anlegen");
 
         orderListe.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane5.setViewportView(orderListe);
 
         jLabel13.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        jLabel13.setText("Fahrer");
+        jLabel13.setText("Fahrer einfügen/ ändern");
 
         jLabel14.setText("Vorname:");
 
@@ -290,13 +298,15 @@ public class AdditionUI extends javax.swing.JFrame {
         jLabel15.setText("Nachname:");
 
         submitFahrerBut.setText("übernehmen");
+        submitFahrerBut.setToolTipText("Eingabe für Vor- und Nachname in Datenbank übernehmen");
         submitFahrerBut.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 submitFahrerButActionPerformed(evt);
             }
         });
 
-        submitOrderBut.setText("übernehmen");
+        submitOrderBut.setText("Auftrag speichern");
+        submitOrderBut.setToolTipText("Auftrag mit den eingegebenen Daten in die Datenbank übernehmen");
         submitOrderBut.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 submitOrderButActionPerformed(evt);
@@ -309,6 +319,7 @@ public class AdditionUI extends javax.swing.JFrame {
             public Object getElementAt(int i) { return strings[i]; }
         });
         fahrerListe.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        fahrerListe.setToolTipText("clicken auf Eintrag, um Vor- oder Nachname zu ändern");
         fahrerListe.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 fahrerListeMouseClicked(evt);
@@ -319,17 +330,12 @@ public class AdditionUI extends javax.swing.JFrame {
         jLabel12.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
         jLabel12.setText(" Anr.  Fahrer   Datum                   Zeit    Start X Y   Ziel X Y             Status");
 
-        jLabel16.setText("PNR   VName   NName");
-
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(submitFahrerBut))
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGap(24, 24, 24)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -338,7 +344,6 @@ public class AdditionUI extends javax.swing.JFrame {
                             .addComponent(jScrollPane5)
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel13)
                                     .addComponent(jLabel9)
                                     .addGroup(jPanel4Layout.createSequentialGroup()
                                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -362,19 +367,23 @@ public class AdditionUI extends javax.swing.JFrame {
                                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                             .addComponent(orderGoalYBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                             .addComponent(orderStartYBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addGap(0, 120, Short.MAX_VALUE)
                                 .addComponent(submitOrderBut))
-                            .addComponent(jScrollPane4, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jScrollPane4, javax.swing.GroupLayout.Alignment.TRAILING)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel13)
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addComponent(jLabel14)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(editFahrerFNameText, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(57, 57, 57)
+                                .addGap(18, 18, 18)
                                 .addComponent(jLabel15)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(editFahrerLNameText, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addComponent(jLabel16, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                .addGap(12, 12, 12)
+                                .addComponent(submitFahrerBut)))))
                 .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
@@ -397,44 +406,45 @@ public class AdditionUI extends javax.swing.JFrame {
                     .addComponent(jLabel7)
                     .addComponent(jLabel6)
                     .addComponent(submitOrderBut))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
                 .addComponent(jLabel12)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(1, 1, 1)
+                .addGap(18, 18, 18)
                 .addComponent(jLabel13)
                 .addGap(18, 18, 18)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel14)
                     .addComponent(editFahrerFNameText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel15)
-                    .addComponent(editFahrerLNameText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(submitFahrerBut)
-                .addGap(23, 23, 23)
-                .addComponent(jLabel16)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(editFahrerLNameText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(submitFahrerBut))
+                .addGap(18, 18, 18)
                 .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
         jTabbedPane5.addTab("Manager", jPanel4);
 
+        chooseFahrerBox.setToolTipText("wählen Sie den aktuellen Fahrer aus");
+        chooseFahrerBox.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         chooseFahrerBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 chooseFahrerBoxActionPerformed(evt);
             }
         });
 
-        jLabel10.setText("Identität:");
+        jLabel10.setText("Fahrer wählen");
 
         jLabel11.setText("aktueller Auftrag:");
 
+        actualOrderLabel.setBackground(new java.awt.Color(153, 255, 153));
         actualOrderLabel.setText("  ");
 
         orderDoneBut.setText("erledigt");
+        orderDoneBut.setToolTipText("Auftrag als erledigt markieren, Fahrer ist wieder verfügbar");
         orderDoneBut.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 orderDoneButActionPerformed(evt);
@@ -442,11 +452,15 @@ public class AdditionUI extends javax.swing.JFrame {
         });
 
         retrieveOrder.setText("neuen Auftrag abrufen");
+        retrieveOrder.setToolTipText("hier clicken, um dem Fahrer Auftrag mit der kürzesten Entfernung zum aktuellen Standort zuzuteilen");
         retrieveOrder.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 retrieveOrderActionPerformed(evt);
             }
         });
+
+        jLabel17.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel17.setText("aktueller Auftrag");
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -455,32 +469,41 @@ public class AdditionUI extends javax.swing.JFrame {
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addGap(26, 26, 26)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(retrieveOrder)
-                    .addComponent(orderDoneBut)
-                    .addComponent(actualOrderLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 341, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel11)
-                    .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addComponent(jLabel10)
-                        .addGap(18, 18, 18)
-                        .addComponent(chooseFahrerBox, javax.swing.GroupLayout.PREFERRED_SIZE, 323, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(28, Short.MAX_VALUE))
+                    .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(jPanel5Layout.createSequentialGroup()
+                            .addComponent(orderDoneBut)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(retrieveOrder))
+                        .addGroup(jPanel5Layout.createSequentialGroup()
+                            .addComponent(jLabel17)
+                            .addGap(341, 341, 341))
+                        .addGroup(jPanel5Layout.createSequentialGroup()
+                            .addComponent(jLabel10)
+                            .addGap(18, 18, 18)
+                            .addComponent(chooseFahrerBox, javax.swing.GroupLayout.PREFERRED_SIZE, 323, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(53, 53, 53)))
+                    .addComponent(actualOrderLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 410, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(12, Short.MAX_VALUE))
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel5Layout.createSequentialGroup()
-                .addGap(80, 80, 80)
+                .addGap(27, 27, 27)
+                .addComponent(jLabel17)
+                .addGap(39, 39, 39)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel10)
                     .addComponent(chooseFahrerBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel11)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(actualOrderLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(orderDoneBut)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 237, Short.MAX_VALUE)
-                .addComponent(retrieveOrder)
-                .addGap(58, 58, 58))
+                .addComponent(actualOrderLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(47, 47, 47)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(orderDoneBut)
+                    .addComponent(retrieveOrder))
+                .addContainerGap(276, Short.MAX_VALUE))
         );
 
         jTabbedPane5.addTab("Fahrer", jPanel5);
@@ -534,10 +557,11 @@ public class AdditionUI extends javax.swing.JFrame {
     }//GEN-LAST:event_orderGoalXBoxActionPerformed
 
     private void orderDoneButActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_orderDoneButActionPerformed
+        setCursor(new Cursor(Cursor.WAIT_CURSOR));
         dbAdapter.markOrderDone(fahrerComboIndexOfSelected);
-        System.out.println("sag an: " + fahrerComboIndexOfSelected);
         updateOrderViews();
         updateFahrerViews();
+        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
     }//GEN-LAST:event_orderDoneButActionPerformed
 
     private void editFahrerFNameTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editFahrerFNameTextActionPerformed
@@ -554,16 +578,20 @@ public class AdditionUI extends javax.swing.JFrame {
 
     private void submitOrderButActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitOrderButActionPerformed
         if (startX != -1 && startY != -1 && goalX != -1 && goalY != -1) {
+            setCursor(new Cursor(Cursor.WAIT_CURSOR));
             dbAdapter.createOrder(startX, startY, goalX, goalY);
             updateOrderViews();
+            setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
         }
     }//GEN-LAST:event_submitOrderButActionPerformed
 
     private void submitFahrerButActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitFahrerButActionPerformed
+        setCursor(new Cursor(Cursor.WAIT_CURSOR));
         fahrerNewFName = editFahrerFNameText.getText();
         fahrerNewLName = editFahrerLNameText.getText();
         dbAdapter.updateFahrer(fahrerNewFName, fahrerNewLName, fahrerListIndexOfSelected);
         updateFahrerViews();
+        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
         fahrerListIndexOfSelected = -1;
         fahrerListe.clearSelection();
         editFahrerFNameText.setText("");
@@ -581,18 +609,19 @@ public class AdditionUI extends javax.swing.JFrame {
     }//GEN-LAST:event_fahrerListeMouseClicked
 
     private void retrieveOrderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_retrieveOrderActionPerformed
-        System.out.println(evt.getSource().toString());
         fahrerComboIndexOfSelected = chooseFahrerBox.getSelectedIndex();
+        setCursor(new Cursor(Cursor.WAIT_CURSOR));
         String assignedOrder = dbAdapter.findClosestOrder(fahrerComboIndexOfSelected);
         actualOrderLabel.setText(assignedOrder);
         updateOrderViews();
         retrieveOrder.setEnabled(false);
-        orderDoneBut.setEnabled(true);
-
+        if (!assignedOrder.equals(Strings.NO_ORDER_ASSIGNED)) {
+            orderDoneBut.setEnabled(true);
+        }
+        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
     }//GEN-LAST:event_retrieveOrderActionPerformed
 
     private void chooseFahrerBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chooseFahrerBoxActionPerformed
-        System.out.println("chooseBoxActionPerformed, index: " + chooseFahrerBox.getSelectedIndex());
         fahrerComboIndexOfSelected = chooseFahrerBox.getSelectedIndex();
         if (fahrerComboIndexOfSelected >= 0) {
             actualOrderLabel.setText(dbAdapter.getActualOrderForDriver(fahrerComboIndexOfSelected));
@@ -618,20 +647,20 @@ public class AdditionUI extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(AdditionUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(RideUrBicycle.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(AdditionUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(RideUrBicycle.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(AdditionUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(RideUrBicycle.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(AdditionUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(RideUrBicycle.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new AdditionUI().setVisible(true);
+                new RideUrBicycle().setVisible(true);
             }
         });
     }
@@ -654,13 +683,17 @@ public class AdditionUI extends javax.swing.JFrame {
     }
 
     private void updateOrderViews() {
+        setCursor(new Cursor(Cursor.WAIT_CURSOR));
         ordersListManager.updateList(dbAdapter.getAllOrdersAsStringList());
+        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
     }
 
     private void updateFahrerViews() {
+        setCursor(new Cursor(Cursor.WAIT_CURSOR));
         ArrayList<String> temp = dbAdapter.getAllFahrerAsStringList();
         fahrerListManager.updateList(temp);
         updateFahrerComboBox(temp);
+        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
     }
 
     private void updateFahrerComboBox(ArrayList<String> list) {
@@ -704,7 +737,7 @@ public class AdditionUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
-    private javax.swing.JLabel jLabel16;
+    private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;

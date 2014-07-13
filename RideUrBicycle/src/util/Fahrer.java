@@ -50,7 +50,7 @@ public class Fahrer {
     }
 
     public String getFahrerAsString() {
-        return vname + " " + nname + " pnr: " + pnr + " x: " + x + " y: " + y;
+        return  pnr +"  " +vname + " " + nname +  "     Standort: " + x + " / " + y;
     }
 
     public String getVName() {
